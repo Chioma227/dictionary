@@ -1,0 +1,33 @@
+.loader {
+    height: 50px;
+    width: 50px;
+    background: transparent;
+    border: rgb(110, 110, 110) 3px solid;
+    border-top: transparent;
+    border-radius: 50%;
+    animation: animate81323 2s linear infinite;
+  }
+  
+  @keyframes animate81323 {
+    0% {
+      border: 3px solid rgb(107, 107, 107);
+      border-top: transparent;
+      border-left: transparent;
+      transform: rotate(0deg);
+    }
+  
+    50% {
+      border: 3px dashed rgb(173, 173, 173);
+      border-top: transparent;
+      border-left: transparent;
+      transform: rotate(270deg);
+    }
+  
+    100% {
+      border: 3px dotted rgb(110, 110, 110);
+      border-top: transparent;
+      border-left: transparent;
+      transform: rotate(360deg);
+    }
+  }
+  
