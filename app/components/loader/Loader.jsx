@@ -4,8 +4,10 @@ import './loader.css'
 
 const Loader = () => {
   return (
-    <div className='loader'>
+   <div className='flex items-center justify-center'>
+     <div className='loader'>
     </div>
+   </div>
   )
 }
 

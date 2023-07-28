@@ -1,18 +1,20 @@
 "use client";
-import React, { useState } from "react";
 import axios from "axios";
+import Input from "./Input";
 import { useRef } from "react";
-import Loader from "./loader/Loader";
+import BasicModal from "./modal/Modal";
+import React, { useState } from "react";
+import DisplayItems from "./DisplayItems";
 
 const Main = () => {
   //states
-
-  const [searchValue, setSearchValue] = useState("");
   const [loading, setLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [audioUrl, setAudioUrl] = useState("");
   const [error, setError] = useState({
-    message: "",
     title: "",
+    message: "",
     resolution: "",
   });
   const [displayItems, setDisplayItems] = useState({
@@ -27,14 +29,12 @@ const Main = () => {
     partOfSpeech: "",
     pronunciation: "",
   });
-
   let inputRef = useRef();
 
   //getword function
-
   const getWord = async () => {
     if (inputRef.current?.value === "") {
-      console.log("empty");
+      alert("Enter a word!");
     } else {
       try {
         setLoading(true);
@@ -43,7 +43,6 @@ const Main = () => {
           `https://api.dictionaryapi.dev/api/v2/entries/en/${userSearch}`
         );
         const data = resp.data[0];
-        console.log(data);
         setDisplayItems({
           ...displayItems,
           name: data?.word,
@@ -56,18 +55,40 @@ const Main = () => {
           partOfSpeech: data?.meanings[0]?.partOfSpeech,
           pronunciation: data?.phonetic,
         });
+        if (resp.status === 200) {
+          if (data.phonetics && data.phonetics.length > 0) {
+            const audioUrl = data.phonetics[0].audio;
+            setAudioUrl(audioUrl);
+          } else {
+            setAudioUrl("");
+          }
+        } else {
+          setAudioUrl("");
+        }
         setLoading(false);
         setSearchValue("");
       } catch (error) {
         setLoading(false);
-        setIsError(true);
-        setError({
-          ...error,
-          title: error.response.data.title,
-          message: error.response.data.message,
-          resolution: error.response.data.resolution,
-        });
-        console.log(error);
+        setSearchValue("");
+        setIsModalOpen(true);
+        if (error.code === "ERR_NETWORK") {
+          setError({
+            ...error,
+            message: error.message + " !",
+          });
+        } else if (error.code === "ECONNABORTED") {
+          setError({
+            ...error,
+            message: error.message + " !",
+          });
+        } else {
+          setError({
+            ...error,
+            title: error.response.data.title,
+            message: error.response.data.message,
+            resolution: error.response.data.resolution,
+          });
+        }
       }
     }
   };
@@ -75,73 +96,23 @@ const Main = () => {
   return (
     <>
       <section>
-        <main className="mt-[30px]">
-          <div className="mb-[30px] md:px-[8rem] px-[2rem] text-[19px] ">
-            <h2 className=" font-mono">
-              Search<span className=" text-gray-500 text-[30px]">It</span>
-            </h2>
-          </div>
-          <section className="flex justify-center">
-            <div className=" relative sm:w-[400px] w-[260px]  text-gray-400 border rounded-md shadow-sm shadow-slate-50">
-              <input
-                className=" outline-none indent-2 py-[6px] px-[3px] text-black rounded-md sm:w-[330px] w-[190px]"
-                type="text"
-                value={searchValue}
-                ref={inputRef}
-                onChange={(e) => setSearchValue(e.target.value)}
-                placeholder="enter word to search..."
-              />
-              <button
-                onClick={getWord}
-                className="absolute left-auto right-[5px] top-0 bottom-0 rounded-md"
-              >
-                search
-              </button>
-            </div>
-          </section>
-        </main>
-
-        {/* {isError ? (
-          <div>error</div>
-        ) : ( */}
-        <section className="mt-[50px] lg:px-[14rem] md:px-[7rem] sm:px-[3rem] px-[30px]">
-          {loading ? (
-            <Loader />
-          ) : (
-            <div>
-              <div className="mb-[20px]">
-                {displayItems.name && (
-                  <h2 className="text-[30px]"> Word: {displayItems.name};</h2>
-                )}
-                {displayItems.partOfSpeech && (
-                  <p className="text-[20px] ">
-                    Part of speech: {displayItems.partOfSpeech}
-                  </p>
-                )}
-              </div>
-              {displayItems.pronunciation && (
-                <p className="mb-[20px]">
-                  Pronounciation: {displayItems.pronunciation}
-                </p>
-              )}
-              <p>{displayItems.definitionOne}</p>
-              <small>{displayItems.exampleOne}</small>
-              {displayItems.definitionTwo && (
-                <p>{displayItems.definitionTwo}</p>
-              )}
-              {displayItems.exampleTwo && (
-                <small>{displayItems.exampleTwo}</small>
-              )}
-              {displayItems.definitionThree && (
-                <p>{displayItems.definitionThree}</p>
-              )}
-              {displayItems.exampleThree && (
-                <small>{displayItems.exampleThree}</small>
-              )}
-            </div>
-          )}
-        </section>
-        {/* )} */}
+        <Input
+          inputRef={inputRef}
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
+          getWord={getWord}
+        />
+        <DisplayItems loading={loading} displayItems={displayItems} audioUrl={audioUrl} />
+        {isModalOpen && (
+          <BasicModal
+            isModalOpen={isModalOpen}
+            setIsModalOpen={setIsModalOpen}
+            errorTitle={error.title}
+            errorMessage={error.message}
+            resolution={error.resolution}
+          />
+        )}
+       
       </section>
     </>
   );
