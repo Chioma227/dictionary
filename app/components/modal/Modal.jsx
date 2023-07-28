@@ -1,10 +1,8 @@
 "use client";
-import { useState } from "react";
 
 const BasicModal = ({
   errorMessage,
   errorTitle,
-  resolution,
   isModalOpen,
   setIsModalOpen,
 }) => {
